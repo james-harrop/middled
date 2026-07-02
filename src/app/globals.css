@@ -1,26 +1,136 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --pine: #0b1f16;
+  --pine-2: #102a1e;
+  --pine-3: #16382a;
+  --cream: #f2ede3;
+  --cream-dim: rgba(242, 237, 227, 0.62);
+  --brass: #c9a45c;
+  --brass-bright: #e0bd74;
+  --error: #e07a5f;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-pine: var(--pine);
+  --color-pine-2: var(--pine-2);
+  --color-pine-3: var(--pine-3);
+  --color-cream: var(--cream);
+  --color-brass: var(--brass);
+  --font-sans: var(--font-archivo);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--pine);
+  color: var(--cream);
+  font-family: var(--font-archivo), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wordmark {
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.display {
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+}
+
+.dim {
+  color: var(--cream-dim);
+}
+
+.btn-brass {
+  background: var(--brass);
+  color: var(--pine);
+  font-weight: 800;
+  border-radius: 10px;
+  padding: 0.9rem 1.8rem;
+  display: inline-block;
+  transition: background 0.15s ease, transform 0.15s ease;
+  cursor: pointer;
+}
+.btn-brass:hover {
+  background: var(--brass-bright);
+  transform: translateY(-1px);
+}
+.btn-brass:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-ghost {
+  border: 2px solid var(--pine-3);
+  color: var(--cream);
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 0.85rem 1.6rem;
+  display: inline-block;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+.btn-ghost:hover {
+  border-color: var(--brass);
+}
+
+.card {
+  background: var(--pine-2);
+  border: 1px solid var(--pine-3);
+  border-radius: 14px;
+}
+
+.brass-rule {
+  width: 42px;
+  height: 3px;
+  background: var(--brass);
+  border-radius: 2px;
+}
+
+input[type="range"].scrub {
+  width: 100%;
+  accent-color: var(--brass);
+}
+
+input[type="email"].field,
+input[type="text"].field {
+  background: var(--pine);
+  border: 2px solid var(--pine-3);
+  color: var(--cream);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  width: 100%;
+  font-weight: 500;
+}
+input.field:focus {
+  outline: none;
+  border-color: var(--brass);
+}
+
+.progress-track {
+  background: var(--pine-3);
+  border-radius: 999px;
+  height: 8px;
+  overflow: hidden;
+}
+.progress-fill {
+  background: var(--brass);
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.2s ease;
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.pulse {
+  animation: pulse-soft 1.6s ease-in-out infinite;
 }
