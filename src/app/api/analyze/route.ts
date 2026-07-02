@@ -172,16 +172,29 @@ export async function POST(request: Request) {
 
         sse(controller, 'status', { stage: 'saving', message: 'Writing up your report…' })
 
-        const { slug } = await saveReport({
-          email,
-          status: demoMode ? 'demo' : report.status,
-          metrics,
-          report,
-          keyframes: Object.fromEntries(POSITIONS.map(p => [p, keyframes[p]])),
-          model: modelUsed,
-        })
+        // Without Supabase on serverless, /tmp persistence doesn't survive
+        // across lambdas — fall back to an inline (slug-less) report so the
+        // demo flow still completes.
+        let slug: string | null = null
+        try {
+          const persistable = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) || !process.env.VERCEL
+          if (persistable) {
+            slug = (
+              await saveReport({
+                email,
+                status: demoMode ? 'demo' : report.status,
+                metrics,
+                report,
+                keyframes: Object.fromEntries(POSITIONS.map(p => [p, keyframes[p]])),
+                model: modelUsed,
+              })
+            ).slug
+          }
+        } catch (err) {
+          console.error('saveReport failed, returning inline report:', err)
+        }
 
-        sse(controller, 'report', { slug, report, demo: demoMode })
+        sse(controller, 'report', { slug, report, demo: demoMode, keyframes })
         sse(controller, 'done', {})
       } catch (err) {
         if (debited) await refund(email).catch(() => {})

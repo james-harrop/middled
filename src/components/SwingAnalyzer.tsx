@@ -15,8 +15,9 @@ import { computeMetrics } from '@/lib/pose/metrics'
 import { captureKeyframes } from '@/lib/pose/keyframes'
 import { consumeSSE } from '@/lib/sse'
 import { LM, type FrameSample, type Handedness } from '@/lib/pose/types'
+import type { CoachReport } from '@/lib/report-schema'
 
-type Stage = 'idle' | 'extracting' | 'confirm' | 'analyzing' | 'error'
+type Stage = 'idle' | 'extracting' | 'confirm' | 'analyzing' | 'report' | 'error'
 
 const POSITIONS = [
   { key: 'p1', label: 'Address' },
@@ -55,6 +56,7 @@ export default function SwingAnalyzer() {
   const [duration, setDuration] = useState(0)
   const [needCredits, setNeedCredits] = useState(false)
   const [topupNote, setTopupNote] = useState('')
+  const [inlineReport, setInlineReport] = useState<CoachReport | null>(null)
 
   useEffect(() => {
     // Warm the ~9MB pose model while the user reads the filming tips.
@@ -214,7 +216,14 @@ export default function SwingAnalyzer() {
 
       await consumeSSE(res, {
         status: d => setStatusMsg(String(d.message ?? 'Working…')),
-        report: d => router.push(`/r/${d.slug}`),
+        report: d => {
+          if (d.slug) router.push(`/r/${d.slug}`)
+          else {
+            // No persistence configured — render the report right here.
+            setInlineReport(d.report as CoachReport)
+            setStage('report')
+          }
+        },
         error: d => fail(String(d.message ?? 'Analysis failed.')),
       })
     } catch (err) {
@@ -362,6 +371,44 @@ export default function SwingAnalyzer() {
         <div className="text-center py-20">
           <h1 className="display text-3xl mb-6 pulse">{statusMsg || 'Analysing…'}</h1>
           <p className="dim text-sm">This takes up to a minute. The coach reads your measured numbers, not just the pictures.</p>
+        </div>
+      )}
+
+      {stage === 'report' && inlineReport && (
+        <div>
+          <p className="wordmark text-xs text-[var(--brass)] mb-4">Your swing report</p>
+          <div className="grid grid-cols-4 gap-2 mb-6">
+            {POSITIONS.map(p =>
+              thumbs[p.key] ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img key={p.key} src={thumbs[p.key]} alt={p.label} className="rounded-lg w-full" />
+              ) : null,
+            )}
+          </div>
+          <p className="text-[var(--brass)] font-bold mb-4">{inlineReport.whats_good}</p>
+          <div className="brass-rule mb-3" />
+          <h1 className="display text-3xl mb-4">{inlineReport.one_fix}</h1>
+          <p className="dim leading-relaxed mb-6">{inlineReport.why}</p>
+          <div className="card p-6 mb-4">
+            <p className="wordmark text-xs text-[var(--brass)] mb-2">Your drill</p>
+            <h2 className="font-extrabold text-lg mb-2">{inlineReport.drill.name}</h2>
+            <p className="dim text-sm mb-2">{inlineReport.drill.how_to}</p>
+            <p className="font-bold text-sm">{inlineReport.drill.reps}</p>
+          </div>
+          <div className="card p-6 mb-6">
+            <p className="wordmark text-xs text-[var(--brass)] mb-3">Next swing, check</p>
+            <ol className="space-y-2">
+              {inlineReport.checkpoints.map((c, i) => (
+                <li key={i} className="text-sm">
+                  <span className="wordmark text-[var(--brass)] mr-2">{i + 1}</span>
+                  {c}
+                </li>
+              ))}
+            </ol>
+          </div>
+          <button className="btn-brass" onClick={() => window.location.assign('/analyze')}>
+            Analyse another swing
+          </button>
         </div>
       )}
 
