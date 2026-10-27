@@ -45,3 +45,4 @@ test-assets/
 .claude/
 .middled-data/
 .playwright-mcp/
+docs/launch-drafts.md
